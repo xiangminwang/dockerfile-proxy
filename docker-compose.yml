@@ -1,0 +1,30 @@
+version: '2'
+services:
+  proxy:
+    image: rckrdstrgrd/nginx-proxy:latest
+    restart: always
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - proxy-tier
+  ssl:
+    image: jrcs/letsencrypt-nginx-proxy-companion:latest
+    restart: always
+    volumes:
+      - ./certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    volumes_from:
+      - proxy 
+    networks:
+      - proxy-tier 
+
+networks:
+  proxy-tier:
+    external:
+      name: nginx-proxy
